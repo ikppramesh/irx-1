@@ -113,10 +113,15 @@ xGAIR docs/source  ──────►  scripts/prepare_xgair_data.py ──�
    400-example sample across 8 task categories from
    [databricks-dolly-15k](https://huggingface.co/datasets/databricks/databricks-dolly-15k)
    (CC-BY-SA-3.0, human-written, not AI-generated).
-4. **Tool-use skill** (`scripts/prepare_xgair_data.py`) — hand-authored examples
+4. **Tool-use skill** (`scripts/prepare_xgair_data.py`) — 69 hand-authored examples
    teaching IRx-1 to parse free-form language into structured tool calls for xGAIR's
-   chat router, plus general knowledge about what xGAIR does — grounded directly in
-   verified source, not freely generated, to avoid hallucinated tool schemas.
+   chat router, grounded directly in xGAIR's actual tool schemas, not freely
+   generated. An earlier version also included ~10 "general knowledge about xGAIR"
+   Q&A examples — dropped after testing showed they weren't enough signal to
+   reliably override the base model's existing prior on the term (it hallucinated,
+   confusing "xGAIR" with an unrelated real acronym). Fact-injection via light
+   fine-tuning is unreliable; the intent-parsing task is a narrower, structured
+   mapping that's actually learnable at this data scale, and testing confirms it.
 5. **Fine-tuning** (`scripts/finetune.sh`) — QLoRA (4-bit base + LoRA adapters on 4
    layers), via [MLX](https://github.com/ml-explore/mlx-lm), entirely on a single
    Apple Silicon machine.
@@ -134,10 +139,33 @@ IRx-1 now serves as an optional natural-language fallback: free-form input that
 doesn't match an exact pattern is parsed by IRx-1 (running locally, fully offline)
 into the correct structured tool call.
 
+**Real, verified outputs** (repo names not seen verbatim in training, to check it
+generalizes rather than just memorizing examples):
+
 ```
-> can you fix the login bug in acme/widgets
-  → xgair_start_task { repoId: "acme/widgets", taskDescription: "fix the login bug", taskType: "fix" }
+> hook up github.com/vercel/next.js
+  → xgair_connect_repo { url: "github.com/vercel/next.js", repo: "next.js" }
+
+> run discovery on stripe/stripe-node
+  → xgair_discover_repo { repoId: "stripe/stripe-node" }
+
+> check this snippet: DROP TABLE users;
+  → xgair_validate { repoId: "", codeSnippet: "DROP TABLE users;" }
+
+> what repos are connected right now
+  → xgair_list_repos {}
 ```
+
+**Known limitation:** when a repo reference is embedded mid-sentence rather than at
+the start of the message (e.g. "there's a broken redirect in vercel/next.js, fix it"),
+`repoId` sometimes comes back empty even though the tool choice itself is correct.
+Occasionally an off-topic message gets mapped to a tool call instead of the expected
+`{"tool": "unknown"}`. Neither is catastrophic by design: the real integration falls
+back to the current-repo context when `repoId` is empty, and a wrongly-triggered call
+is a harmless read, not a destructive action — see `dispatchParsedIntent` in xGAIR's
+`router.ts`. Two rounds of expanding/rebalancing the training data measurably improved
+this; further gains would likely need meaningfully more data or LoRA capacity than the
+current memory-safe training config allows.
 
 See xGAIR's README, "Stage 2b — Natural-Language Fallback via IRx-1", for the full
 integration.
@@ -157,7 +185,7 @@ IRx-1/
 │   ├── prepare_data.py            # personal history → redacted training data
 │   ├── generate_distillation_data.py
 │   ├── prepare_general_data.py    # databricks-dolly-15k sample
-│   ├── prepare_xgair_data.py      # xGAIR tool-use + knowledge data
+│   ├── prepare_xgair_data.py      # xGAIR intent-parsing training data
 │   ├── combine_data.py            # merge all sources → train/valid split
 │   ├── finetune.sh                # QLoRA fine-tune
 │   ├── merge_and_quantize.sh      # fuse adapters, quantize
