@@ -86,26 +86,32 @@ this size.
 
 ## How it was built
 
-```
-data/raw/  ──────────────►  scripts/prepare_data.py  ─────┐
-(personal history export,       (redact + exclude PII)     │
- gitignored, never committed)                               │
-                                                              ▼
-data/seed_prompts.txt  ─►  scripts/generate_distillation_data.py ─┐
-                              (teacher model, local)                │
-databricks-dolly-15k  ───►  scripts/prepare_general_data.py ───────┤──►  scripts/combine_data.py
-                              (balanced general Q&A sample)         │        (train/valid split)
-xGAIR docs/source  ──────►  scripts/prepare_xgair_data.py ─────────┘              │
-  (hand-authored, grounded                                                        ▼
-   in verified source)                                                  scripts/finetune.sh
-                                                                          (QLoRA, MLX, on-device)
-                                                                                    │
-                                                                                    ▼
-                                                                      scripts/merge_and_quantize.sh
-                                                                        (fuse adapters → GGUF)
-                                                                                    │
-                                                                                    ▼
-                                                                          Hugging Face + GitHub
+```mermaid
+flowchart TD
+    A1[Personal Claude history export<br/>gitignored, never committed]
+    A2[Style-distillation prompts]
+    A3[General instruction dataset]
+    A4[xGAIR tool schemas]
+    A5[General-knowledge prompts]
+
+    A1 --> B1[prepare_data.py<br/>redact + exclude PII]
+    A2 --> B2[generate_distillation_data.py<br/>local teacher model]
+    A3 --> B3[prepare_general_data.py<br/>balanced sample]
+    A4 --> B4[prepare_xgair_data.py<br/>hand-authored intent examples]
+    A5 --> B5[9B local teacher model<br/>spot-checked for accuracy]
+
+    B1 --> C[combine_data.py<br/>train / valid split]
+    B2 --> C
+    B3 --> C
+    B4 --> C
+    B5 --> C
+
+    C --> D[finetune.sh<br/>QLoRA via MLX, on-device]
+    D --> E[merge_and_quantize.sh<br/>fuse LoRA adapters]
+
+    E --> F[MLX model<br/>huggingface.co/ikppramesh/irx-1]
+    E --> G[fix_gguf_mlx_conversion.py<br/>+ convert_hf_to_gguf.py]
+    G --> H[GGUF model<br/>huggingface.co/ikppramesh/irx-1-GGUF]
 ```
 
 1. **Personal data** (`scripts/prepare_data.py`) — a claude.ai conversation export is
@@ -181,33 +187,17 @@ project: fine-tuning on correct facts doesn't reliably override an existing wron
 belief, and news is the worst case for that — dense with fast-changing, precise
 facts). So this doesn't retrain the model at all. Instead:
 
-```
- Indian RSS feeds
- (Times of India, The Hindu, Indian Express, NDTV, LiveMint)
-        │
-        │  every 5 hours — macOS launchd (com.irx1.newsfetch.plist)
-        ▼
- scripts/fetch_news.py
-   • parse RSS XML (stdlib only, no extra deps)
-   • dedup by article link
-   • expire entries older than 7 days
-        │
-        ▼
- data/news.db  ──  SQLite + FTS5 full-text index
-        │
-        │  per question, at answer-time (not on a schedule)
-        ▼
- scripts/news_context.py
-   • extract keywords from the user's question
-   • FTS5 MATCH → top-3 relevant recent articles
-        │
-        ▼
- scripts/chat.py
-   • prepends matched articles to the system prompt
-   • model answers grounded in real, current article text
-        │
-        ▼
-   IRx-1  (weights never change — this is retrieval, not training)
+```mermaid
+flowchart TD
+    A[Indian RSS feeds<br/>Times of India, The Hindu, Indian Express, NDTV, LiveMint]
+    A -->|every 5 hours, macOS launchd| B[fetch_news.py<br/>parse RSS, dedup by link, expire entries older than 7 days]
+    B --> C[(data/news.db<br/>SQLite + FTS5 full-text index)]
+
+    Q[User question] --> E[news_context.py<br/>extract keywords, FTS5 MATCH search]
+    C --> E
+    E -->|top-3 relevant articles| F[chat.py<br/>prepend to system prompt]
+    F --> G[IRx-1<br/>weights unchanged]
+    G --> R[Answer grounded in real, current article text]
 ```
 
 - `scripts/fetch_news.py` — pulls Indian RSS feeds (Times of India, The Hindu,
