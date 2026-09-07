@@ -1,7 +1,5 @@
 ---
 license: apache-2.0
-license_link: https://huggingface.co/Qwen/Qwen3.5-2B/blob/main/LICENSE
-base_model: Qwen/Qwen3.5-2B
 tags:
 - gguf
 - llama.cpp
@@ -35,8 +33,8 @@ Both verified directly against the raw checkpoint (`mx.allclose` after undoing
 each transform matches exactly) and fixed before conversion — see
 `scripts/fix_gguf_mlx_conversion.py` in the
 [main repo](https://github.com/ikppramesh/irx-1). Also needs `--no-mtp` at
-convert time (this checkpoint doesn't carry Qwen3.5's optional
-multi-token-prediction head).
+convert time (this checkpoint doesn't carry an optional multi-token-prediction
+head some conversion paths expect).
 
 ## Usage
 
@@ -50,5 +48,5 @@ Same capability/limitation notes as the [main IRx-1 model card](https://huggingf
 
 ## License
 
-Apache 2.0, inherited from Qwen3.5-2B. Derivative fine-tune — see the linked
-license for full terms.
+Apache 2.0. This is a derivative fine-tuned model — full Apache 2.0 terms apply
+as with any work under this license.
