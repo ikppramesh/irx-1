@@ -130,12 +130,20 @@ xGAIR docs/source  ──────►  scripts/prepare_xgair_data.py ──�
    confusing "xGAIR" with an unrelated real acronym). Fact-injection via light
    fine-tuning is unreliable; the intent-parsing task is a narrower, structured
    mapping that's actually learnable at this data scale, and testing confirms it.
-5. **Fine-tuning** (`scripts/finetune.sh`) — QLoRA (4-bit base + LoRA adapters on 4
+5. **Broader factual coverage** — a stronger local model
+   ([Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B), same architecture family as
+   the base model, run purely as a teacher — never merged, since weight merging across
+   different-sized/architecture models isn't possible) generated 88 general-knowledge
+   Q&A examples (geography, science, history), spot-checked for accuracy. This directly
+   improves factual answers within that set of examples; it does not make the model
+   broadly, reliably accurate on arbitrary facts outside its training data — that
+   remains bounded by parameter count, not something more data fully closes.
+6. **Fine-tuning** (`scripts/finetune.sh`) — QLoRA (4-bit base + LoRA adapters on 4
    layers), via [MLX](https://github.com/ml-explore/mlx-lm), entirely on a single
    Apple Silicon machine.
-6. **Merge & quantize** (`scripts/merge_and_quantize.sh`) — LoRA adapters fused back
+7. **Merge & quantize** (`scripts/merge_and_quantize.sh`) — LoRA adapters fused back
    into the base weights for a single self-contained checkpoint.
-7. **Serve** (`scripts/serve.sh`, `scripts/chat.py`) — an OpenAI-compatible local HTTP
+8. **Serve** (`scripts/serve.sh`, `scripts/chat.py`) — an OpenAI-compatible local HTTP
    API or an interactive terminal chat, both fully offline.
 
 ## Real-world integration: xGAIR

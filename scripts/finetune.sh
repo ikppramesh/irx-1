@@ -14,7 +14,7 @@ mlx_lm.lora \
   --adapter-path "$ADAPTER_DIR" \
   --batch-size 1 \
   --num-layers 4 \
-  --iters 1300 \
+  --iters 1450 \
   --max-seq-length 512 \
   --steps-per-eval 100 \
   --steps-per-report 20 \
