@@ -47,6 +47,14 @@ required at inference time — while still being genuinely useful for everyday t
   retrieval-based access to recent news, prices, or events
 - Like any small model, occasional repetitive or off answers at higher sampling
   temperatures; regenerating usually resolves it
+- **Don't enable native tool/function-calling in chat apps** (LM Studio, Bionic,
+  similar). The base architecture supports a native `<tool_call>` function-calling
+  format, but fine-tuning never trained on or reinforced it — a host app exposing
+  tools/functions to the model can cause it to misfire the wrong tool for a plain
+  question, or produce output that breaks the app's parser. Verified: the same query
+  answered cleanly with no tools registered, but misfired a call to an irrelevant
+  dummy tool when one was present. If you see a "failed to parse tool call" error,
+  turn off tool/function-calling for this model.
 
 ## Quick start
 
