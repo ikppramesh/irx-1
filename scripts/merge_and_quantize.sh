@@ -1,21 +1,41 @@
 #!/usr/bin/env bash
-# Merge LoRA adapters into the base model, then quantize to GGUF for on-device use.
-# Requires: source .venv/bin/activate, and llama.cpp cloned as a sibling dir for GGUF conversion.
+# Merge LoRA adapters into the base model, then quantize to GGUF for on-device use
+# (llama.cpp-based runtimes: LM Studio, llama.rn mobile apps, Ollama import, etc).
+# Requires: source .venv/bin/activate, and llama.cpp cloned as a sibling dir:
+#   git clone https://github.com/ggml-org/llama.cpp ../llama.cpp
+#   pip install -r ../llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
+#     (in a SEPARATE venv, or expect it to downgrade transformers/numpy/tokenizers
+#      here — it did, and broke mlx_lm's tokenizer loading, the first time this
+#      was tried; restore this project's requirements.txt afterward if so)
 set -euo pipefail
 
 BASE_MODEL="mlx-community/Qwen3.5-2B-4bit"
 ADAPTER_DIR="models/irx-1-adapters"
-MERGED_DIR="models/irx-1-merged"
-LLAMA_CPP_DIR="../llama.cpp"        # adjust or clone: git clone https://github.com/ggml-org/llama.cpp
-GGUF_OUT="models/irx-1-qwen3.5-2b.gguf"
-GGUF_QUANT_OUT="models/irx-1-qwen3.5-2b-Q4_K_M.gguf"
+MERGED_DIR="models/irx-1-merged-fp16"
+LLAMA_CPP_DIR="../llama.cpp"
+GGUF_F16="models/irx-1-qwen3.5-2b-f16.gguf"
+GGUF_QUANT="models/irx-1-qwen3.5-2b-Q4_K_M.gguf"
 
 mlx_lm.fuse \
   --model "$BASE_MODEL" \
   --adapter-path "$ADAPTER_DIR" \
-  --save-path "$MERGED_DIR"
+  --save-path "$MERGED_DIR" \
+  --dequantize
 
-echo "Merged model written to $MERGED_DIR"
-echo "Convert to GGUF with llama.cpp (not included here — clone separately):"
-echo "  python $LLAMA_CPP_DIR/convert_hf_to_gguf.py $MERGED_DIR --outfile $GGUF_OUT"
-echo "  $LLAMA_CPP_DIR/llama-quantize $GGUF_OUT $GGUF_QUANT_OUT Q4_K_M"
+# Two real bugs in mlx_lm.convert's Qwen3.5 export silently corrupt GGUF
+# conversion — the file converts and loads without any error, but generates
+# complete garbage. Found by diffing every tensor against the raw HF
+# checkpoint; see the docstring in fix_gguf_mlx_conversion.py for the full
+# story (conv1d.weight layout + a Gemma-style RMSNorm weight offset).
+python scripts/fix_gguf_mlx_conversion.py "$MERGED_DIR"
+
+# --no-mtp: this checkpoint doesn't carry Qwen3.5's optional multi-token-
+# prediction head (mlx_lm.convert drops it; it's not needed for normal,
+# non-speculative-decoding inference).
+python "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" "$MERGED_DIR" \
+  --outfile "$GGUF_F16" --outtype f16 --no-mtp
+
+# llama-quantize: brew install llama.cpp
+llama-quantize "$GGUF_F16" "$GGUF_QUANT" Q4_K_M
+
+echo "GGUF ready: $GGUF_QUANT"

@@ -5,6 +5,7 @@
 **A ~2B parameter chat model, fine-tuned for fast, private, fully offline use on personal devices.**
 
 [![Model on Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-ikppramesh%2Firx--1-yellow)](https://huggingface.co/ikppramesh/irx-1)
+[![GGUF on Hugging Face](https://img.shields.io/badge/🤗%20GGUF-ikppramesh%2Firx--1--GGUF-yellow)](https://huggingface.co/ikppramesh/irx-1-GGUF)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](docs/LICENSE_NOTE.md)
 [![Built with MLX](https://img.shields.io/badge/built%20with-MLX-black)](https://github.com/ml-explore/mlx-lm)
 
@@ -142,9 +143,35 @@ xGAIR docs/source  ──────►  scripts/prepare_xgair_data.py ──�
    layers), via [MLX](https://github.com/ml-explore/mlx-lm), entirely on a single
    Apple Silicon machine.
 7. **Merge & quantize** (`scripts/merge_and_quantize.sh`) — LoRA adapters fused back
-   into the base weights for a single self-contained checkpoint.
+   into the base weights for a single self-contained checkpoint, exported to GGUF
+   for llama.cpp-based runtimes (see below).
 8. **Serve** (`scripts/serve.sh`, `scripts/chat.py`) — an OpenAI-compatible local HTTP
    API or an interactive terminal chat, both fully offline.
+
+## GGUF / on-device via llama.cpp
+
+[![GGUF on Hugging Face](https://img.shields.io/badge/🤗%20GGUF-ikppramesh%2Firx--1--GGUF-yellow)](https://huggingface.co/ikppramesh/irx-1-GGUF)
+
+A stock `mlx_lm.convert` → `llama.cpp convert_hf_to_gguf.py` pipeline produces a
+GGUF that **loads without error but generates complete garbage** — silently broken,
+not obviously broken. Found by directly diffing every tensor between the raw HF
+checkpoint and MLX's converted output (`scripts/fix_gguf_mlx_conversion.py` has the
+full story in its docstring):
+
+1. **`conv1d.weight` layout** — MLX stores it as (out, kernel, in); llama.cpp
+   expects PyTorch's (out, in, kernel). Affects all 18 linear-attention layers'
+   core recurrent-state computation. Verified: transposing MLX's version back
+   reproduces the raw checkpoint's values exactly.
+2. **RMSNorm weight offset** — the raw checkpoint uses the Gemma-style
+   zero-centered convention (actual multiplier = 1 + weight); MLX adds the 1.0
+   internally for its own kernel and that shifted value is what gets exported.
+   Affects 61 tensors. Verified the same way.
+
+Both silent, structural bugs in `mlx_lm.convert`'s Qwen3.5 support — not anything
+specific to this fine-tune. Fixed before conversion, plus `--no-mtp` (this
+checkpoint doesn't carry Qwen3.5's optional multi-token-prediction head).
+Result verified generating coherent, correct output. GGUF build:
+[ikppramesh/irx-1-GGUF](https://huggingface.co/ikppramesh/irx-1-GGUF).
 
 ## Real-world integration: xGAIR
 
@@ -204,8 +231,10 @@ IRx-1/
 │   ├── prepare_xgair_data.py      # xGAIR intent-parsing training data
 │   ├── combine_data.py            # merge all sources → train/valid split
 │   ├── finetune.sh                # QLoRA fine-tune
-│   ├── merge_and_quantize.sh      # fuse adapters, quantize
+│   ├── merge_and_quantize.sh      # fuse adapters, export GGUF
+│   ├── fix_gguf_mlx_conversion.py # fixes 2 silent MLX→GGUF export bugs
 │   ├── serve.sh                   # local OpenAI-compatible API
+│   ├── serve_no_tools.py          # proxy: strips tool-calling for clients that force it
 │   └── chat.py                    # interactive terminal chat
 └── requirements.txt
 ```
