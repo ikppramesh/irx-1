@@ -181,6 +181,35 @@ project: fine-tuning on correct facts doesn't reliably override an existing wron
 belief, and news is the worst case for that — dense with fast-changing, precise
 facts). So this doesn't retrain the model at all. Instead:
 
+```
+ Indian RSS feeds
+ (Times of India, The Hindu, Indian Express, NDTV, LiveMint)
+        │
+        │  every 5 hours — macOS launchd (com.irx1.newsfetch.plist)
+        ▼
+ scripts/fetch_news.py
+   • parse RSS XML (stdlib only, no extra deps)
+   • dedup by article link
+   • expire entries older than 7 days
+        │
+        ▼
+ data/news.db  ──  SQLite + FTS5 full-text index
+        │
+        │  per question, at answer-time (not on a schedule)
+        ▼
+ scripts/news_context.py
+   • extract keywords from the user's question
+   • FTS5 MATCH → top-3 relevant recent articles
+        │
+        ▼
+ scripts/chat.py
+   • prepends matched articles to the system prompt
+   • model answers grounded in real, current article text
+        │
+        ▼
+   IRx-1  (weights never change — this is retrieval, not training)
+```
+
 - `scripts/fetch_news.py` — pulls Indian RSS feeds (Times of India, The Hindu,
   Indian Express, NDTV, LiveMint) into a local SQLite full-text-search index,
   meant to run on a schedule (`scripts/com.irx1.newsfetch.plist`, a macOS
@@ -286,6 +315,39 @@ python3 scripts/chat.py --model ikppramesh/irx-1
 
 To reproduce training, you'll need your own `data/raw/conversations.json`
 (claude.ai → Settings → Account → Export data) — everything downstream is scripted.
+
+## Changelog
+
+**2026-09-08**
+- Removed base-model references from public model cards (no more Model Tree
+  linkage, no license link naming the base) — kept a generic Apache 2.0
+  declaration only
+- Added a creator-identity system prompt instruction — consistently attributes
+  the model to its creator when asked, tested across phrasings ("who made you",
+  "tell me about yourself", etc.)
+- Added the news RAG pipeline above — RSS → SQLite FTS index, refreshed every
+  5h via launchd, retrieved per-question at answer-time; model weights untouched
+- Fixed GGUF export: found and fixed two silent bugs in the MLX→GGUF conversion
+  path (a conv1d weight axis-order mismatch, and an RMSNorm weight offset
+  convention mismatch) that together produced a file which loaded without error
+  but generated complete garbage. Verified working GGUF published.
+
+**2026-09-07**
+- Added a general-knowledge fine-tuning round using a locally-run larger model
+  as teacher (88 spot-checked geography/science/history examples) — verified a
+  genuine but partial accuracy improvement, not a full fix (documented honestly
+  in Limitations, including facts that stayed wrong)
+- Hardened the tool-calling-bypass proxy: overrides any system prompt a client
+  injects, caps `max_tokens` as a backstop against runaway generation
+- Documented the tool/function-calling limitation — host apps that expose
+  tools/functions to the model can trigger misfired tool calls or an
+  unterminated hallucinated agentic loop
+- Rebalanced the xGAIR intent-parsing training data (32 → 69 examples) after
+  finding an earlier small "general knowledge about xGAIR" factual set was
+  unreliable and caused hallucination; dropped it, focused entirely on the
+  structured intent-parsing task, which the data scale actually supports
+- Initial commit: personal-history + general-QA + distillation data pipeline,
+  QLoRA fine-tuning scripts, first published model card
 
 ## License
 
