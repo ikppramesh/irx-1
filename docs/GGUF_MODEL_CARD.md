@@ -46,6 +46,13 @@ llama-cli -m irx-1-Q4_K_M.gguf \
 
 Same capability/limitation notes as the [main IRx-1 model card](https://huggingface.co/ikppramesh/irx-1) apply — small model, not frontier-scale, don't expose tool/function-calling to it in host apps that support that.
 
+## Changelog
+
+- **2026-09-08** — First working GGUF build. Two silent MLX→GGUF conversion bugs
+  found and fixed (see above); verified generating correct, coherent output
+  before publishing. Full model changelog (training rounds, RAG pipeline,
+  etc.) on the [main model card](https://huggingface.co/ikppramesh/irx-1).
+
 ## License
 
 Apache 2.0. This is a derivative fine-tuned model — full Apache 2.0 terms apply
