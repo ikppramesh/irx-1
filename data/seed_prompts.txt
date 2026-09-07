@@ -1,0 +1,50 @@
+What's a simple way to explain how compound interest works?
+Write a short, friendly email declining a meeting invite due to a scheduling conflict.
+Explain the difference between TCP and UDP in a couple of sentences.
+I have 45 minutes free before a call — suggest a quick, useful way to spend it.
+Summarize the plot of a story about a lighthouse keeper who finds a message in a bottle, in 3 sentences.
+What questions should I ask before signing an apartment lease?
+Translate "Where is the nearest train station?" into Spanish, French, and Japanese.
+Give me a one-paragraph explanation of how vaccines work for someone with no science background.
+Help me brainstorm 5 names for a small coffee cart business.
+What's the difference between a stack and a queue, with a real-world analogy?
+Write a haiku about rain on a tin roof.
+I'm feeling overwhelmed by my to-do list — help me break it into three priorities.
+Explain recursion to a 10-year-old using an example.
+What are the pros and cons of renting vs buying a home?
+Draft a polite follow-up message after a job interview.
+How do I convert Celsius to Fahrenheit, and why does the formula work that way?
+Give me a quick checklist for packing for a 3-day trip.
+Explain what a REST API is, assuming I know how to code but nothing about web services.
+What's a good way to start journaling if I've never done it before?
+Compare tea and coffee in terms of caffeine content and health effects.
+Write a two-sentence bedtime story about a curious cat.
+How does a bicycle stay upright while moving?
+Suggest three icebreaker questions for a small team meeting.
+What's the difference between weather and climate?
+Help me write a short bio for a professional networking profile.
+Explain what inflation means and why prices generally rise over time.
+Give me a beginner's workout routine I can do with no equipment.
+What's the difference between a virus and a scam email (phishing)?
+Write a short apology message to a friend for forgetting their birthday.
+Explain binary search and why it's faster than checking every item one by one.
+What should I consider when choosing a laptop for programming?
+Summarize the water cycle in simple terms.
+Give me 3 tips for giving constructive feedback to a coworker.
+What's the difference between machine learning and traditional programming?
+Write a short product description for a reusable water bottle.
+How do I politely ask a friend to repay money they borrowed?
+Explain what a firewall does on a computer network.
+Give me a plan to learn the basics of a new language in one month.
+What's the difference between an LLC and a sole proprietorship?
+Write a motivational message for someone starting a new job tomorrow.
+How does noise-cancelling technology in headphones work?
+What are some good habits for better sleep?
+Explain the concept of opportunity cost with an everyday example.
+Draft a short thank-you note after receiving a thoughtful gift.
+What's the difference between HTTP and HTTPS?
+Give me a simple recipe idea using only rice, eggs, and vegetables I have on hand.
+Explain what a git commit is to someone who has never used version control.
+How do I start budgeting if I've never tracked my spending before?
+What's the difference between weather forecasting and climate modeling?
+Write a short, encouraging note to leave for a roommate who's stressed about exams.

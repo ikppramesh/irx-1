@@ -1,0 +1,17 @@
+# Personal data — never commit
+data/raw/
+data/processed/*.jsonl
+
+# Model weights / checkpoints (large binaries)
+models/
+*.gguf
+*.safetensors
+adapters/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
