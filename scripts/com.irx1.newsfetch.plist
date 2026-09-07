@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.irx1.newsfetch</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/rameshinampudi/Documents/Projects/IRx-1/.venv/bin/python3</string>
+        <string>/Users/rameshinampudi/Documents/Projects/IRx-1/scripts/fetch_news.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/rameshinampudi/Documents/Projects/IRx-1</string>
+    <key>StartInterval</key>
+    <integer>18000</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/rameshinampudi/Documents/Projects/IRx-1/data/newsfetch.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/rameshinampudi/Documents/Projects/IRx-1/data/newsfetch.log</string>
+</dict>
+</plist>

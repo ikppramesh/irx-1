@@ -14,6 +14,8 @@ import argparse
 from mlx_lm import stream_generate, load
 from mlx_lm.sample_utils import make_sampler
 
+from news_context import get_relevant_context
+
 DEFAULT_SYSTEM_PROMPT = (
     "Respond directly with only your final answer. Do not show your reasoning, "
     "planning, drafts, or a step-by-step thinking process."
@@ -26,6 +28,8 @@ def main():
     parser.add_argument("--temp", type=float, default=0.7)
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT)
+    parser.add_argument("--no-news", action="store_true",
+                         help="Disable news-index retrieval context")
     args = parser.parse_args()
 
     print(f"Loading {args.model} ...")
@@ -49,7 +53,14 @@ def main():
             continue
 
         history.append({"role": "user", "content": query})
-        messages = [{"role": "system", "content": args.system_prompt}] + history
+
+        system_prompt = args.system_prompt
+        if not args.no_news:
+            context = get_relevant_context(query)
+            if context:
+                system_prompt = f"{system_prompt}\n\n{context}"
+
+        messages = [{"role": "system", "content": system_prompt}] + history
         prompt = tokenizer.apply_chat_template(
             messages, add_generation_prompt=True, tokenize=False, enable_thinking=False
         )

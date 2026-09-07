@@ -173,6 +173,32 @@ checkpoint doesn't carry Qwen3.5's optional multi-token-prediction head).
 Result verified generating coherent, correct output. GGUF build:
 [ikppramesh/irx-1-GGUF](https://huggingface.co/ikppramesh/irx-1-GGUF).
 
+## Current-events awareness: retrieval, not retraining
+
+IRx-1's weights are fixed at training time — like any fine-tuned small model, it
+can't reliably learn new facts by being retrained on them (verified directly this
+project: fine-tuning on correct facts doesn't reliably override an existing wrong
+belief, and news is the worst case for that — dense with fast-changing, precise
+facts). So this doesn't retrain the model at all. Instead:
+
+- `scripts/fetch_news.py` — pulls Indian RSS feeds (Times of India, The Hindu,
+  Indian Express, NDTV, LiveMint) into a local SQLite full-text-search index,
+  meant to run on a schedule (`scripts/com.irx1.newsfetch.plist`, a macOS
+  launchd job, every 5 hours) — pure data ingestion, safe to automate
+- `scripts/news_context.py` — at answer-time, searches that index for articles
+  relevant to the question and hands them to the model as context
+- `scripts/chat.py` uses this automatically (disable with `--no-news`)
+
+Verified: asked "what is the news about the government today?", it answered
+grounded in an actual retrieved article (Modi's centenary visit to his alma
+mater) rather than hallucinating from memory — the real fix for "wants current
+info" that retraining-on-news can't reliably deliver.
+
+Deliberately **not** automated end-to-end into "retrain and push to Hugging
+Face automatically" — that would risk shipping degraded or hallucination-prone
+model versions to a public repo with no human review. Model updates (new
+training data, new fine-tuning rounds) stay a deliberate, reviewed step.
+
 ## Real-world integration: xGAIR
 
 [xGAIR](https://github.com/ikppramesh/XGAIR) is an MCP (Model Context Protocol) server
@@ -235,6 +261,9 @@ IRx-1/
 │   ├── fix_gguf_mlx_conversion.py # fixes 2 silent MLX→GGUF export bugs
 │   ├── serve.sh                   # local OpenAI-compatible API
 │   ├── serve_no_tools.py          # proxy: strips tool-calling for clients that force it
+│   ├── fetch_news.py              # RSS -> SQLite FTS index (retrieval, not training data)
+│   ├── news_context.py            # queries the index for chat.py's RAG context
+│   ├── com.irx1.newsfetch.plist   # macOS launchd job: run fetch_news.py every 5h
 │   └── chat.py                    # interactive terminal chat
 └── requirements.txt
 ```
