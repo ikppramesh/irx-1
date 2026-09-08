@@ -33,6 +33,11 @@ from pathlib import Path
 FEEDS = [
     ("Times of India", "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"),
     ("The Hindu", "https://www.thehindu.com/news/national/feeder/default.rss"),
+    # Returns HTTP 403 from GitHub Actions' datacenter IP range (works fine
+    # from a residential IP, e.g. the local Mac run). Not worked around --
+    # that's the site's own anti-bot measure, legitimate to respect. The
+    # GitHub Pages-published snapshot will be missing this source; the local
+    # Mac index (data/news.db) has it.
     ("Indian Express", "https://indianexpress.com/section/india/feed/"),
     ("NDTV", "https://feeds.feedburner.com/ndtvnews-top-stories"),
     ("LiveMint", "https://www.livemint.com/rss/news"),

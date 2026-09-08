@@ -231,6 +231,63 @@ Face automatically" — that would risk shipping degraded or hallucination-prone
 model versions to a public repo with no human review. Model updates (new
 training data, new fine-tuning rounds) stay a deliberate, reviewed step.
 
+### Using this from anywhere — mobile, or anyone else's system
+
+`data/news.db` only ever exists on the Mac it was built on — it's not part of
+the model weights or the GGUF file, so a mobile app (or anyone else who
+downloaded the model) has no access to it by default. Rather than stand up a
+paid always-on API server, [`.github/workflows/fetch-news.yml`](.github/workflows/fetch-news.yml)
+runs the same `fetch_news.py` on a schedule via GitHub Actions (free for public
+repos) and publishes a JSON snapshot through GitHub Pages (free static
+hosting) — no server, no hosting cost, no uptime to maintain:
+
+```
+https://ikppramesh.github.io/irx-1/news.json
+```
+
+Any client — a mobile app, a script on someone else's laptop, anything that can
+make an HTTP GET request — fetches that file directly and searches it locally,
+the same keyword-matching approach as `scripts/news_context.py`:
+
+```javascript
+const resp = await fetch("https://ikppramesh.github.io/irx-1/news.json");
+const { articles } = await resp.json();
+
+function relevantArticles(query, articles, limit = 3) {
+  const stopwords = new Set(["the","a","an","is","are","was","were","what","who",
+    "when","where","why","how","did","does","do","in","on","at","to","of","for",
+    "and","or","with","about","tell","me","please"]);
+  const terms = (query.toLowerCase().match(/[a-z0-9]+/g) ?? [])
+    .filter(w => !stopwords.has(w) && w.length > 2);
+  if (!terms.length) return [];
+
+  return articles
+    .map(a => ({ article: a, score: terms.filter(t =>
+      (a.title + " " + a.summary).toLowerCase().includes(t)).length }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => x.article);
+}
+
+const matches = relevantArticles(userQuestion, articles);
+const context = matches.length
+  ? "Your training data is outdated for recent events, and you have no reliable " +
+    "internal knowledge of them. Answer using ONLY the articles below. If they " +
+    "don't contain enough to answer, say so directly instead of guessing from " +
+    "memory. Recent articles:\n" +
+    matches.map(a => `- [${a.source}] ${a.title}: ${a.summary}`).join("\n")
+  : "";
+
+const systemPrompt = baseSystemPrompt + (context ? "\n\n" + context : "");
+```
+
+**Known gap:** Indian Express returns HTTP 403 from GitHub Actions' datacenter
+IPs (works fine locally) — legitimate anti-bot behavior on their end, not
+worked around. The published snapshot has 7 of 8 sources; the local Mac index
+has all 8. Verified working end-to-end: the workflow runs, publishes real
+article data, and the URL above serves it.
+
 ## Real-world integration: xGAIR
 
 [xGAIR](https://github.com/ikppramesh/XGAIR) is an MCP (Model Context Protocol) server
@@ -322,6 +379,10 @@ To reproduce training, you'll need your own `data/raw/conversations.json`
 ## Changelog
 
 **2026-09-08**
+- Made news retrieval portable beyond this Mac: GitHub Actions runs the fetch
+  on a schedule and publishes a JSON snapshot via GitHub Pages (both free) —
+  any client, including a mobile app, can now fetch and search it with no
+  server and no local Python/SQLite setup. Verified live and serving real data.
 - Extended the news RAG with AI/tech feeds (TechCrunch AI, The Verge AI, MIT
   Technology Review) so IRx-1 can discuss recent AI-model-landscape news the
   same way it does other current events — added Atom feed parsing (The Verge
