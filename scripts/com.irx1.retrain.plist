@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.irx1.retrain</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/rameshinampudi/Documents/Projects/IRx-1/scripts/retrain_and_publish.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/rameshinampudi/Documents/Projects/IRx-1</string>
+    <key>StartInterval</key>
+    <integer>18000</integer>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/Users/rameshinampudi/Documents/Projects/IRx-1/data/retrain.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/rameshinampudi/Documents/Projects/IRx-1/data/retrain.log</string>
+</dict>
+</plist>

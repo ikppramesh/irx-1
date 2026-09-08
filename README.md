@@ -395,6 +395,27 @@ To reproduce training, you'll need your own `data/raw/conversations.json`
 ## Changelog
 
 **2026-09-08**
+- Added a fully automated recurring pipeline (`scripts/retrain_and_publish.sh`,
+  `com.irx1.retrain.plist`, same 5h interval as the news fetch): each cycle
+  turns the freshest ~20 articles into a small rolling training set
+  (`generate_news_training_data.py`, overwritten not accumulated), retrains,
+  rebuilds both the MLX and GGUF artifacts, and republishes both Hugging Face
+  repos unattended. Explicitly requested with the tradeoff disclosed up front:
+  retraining does not reliably teach the model new facts (see below and the
+  model card) — the real current-events path stays retrieval. First run
+  caught and fixed a real bug worth recording: `mlx_lm.fuse`'s `--save-path`
+  silently overwrites `README.md` with its own auto-generated stub, which
+  briefly wiped the curated model card and re-added a `base_model`/
+  `license_link` referencing Qwen on the public repo — exactly what an
+  earlier decision here said never to expose. Fixed by backing up and
+  restoring the README around every fuse call, and by pinning the GGUF
+  repo's upload filename so repeated runs overwrite in place instead of
+  accumulating duplicate files under different names.
+- Wired news retrieval directly into the reference mobile app (`irai`):
+  RNFS-cached JSON, keyword-scored retrieval mirroring the app's existing
+  memory system, refreshed automatically on launch plus a manual refresh
+  control in Settings — "refresh" now means re-fetching a small JSON file,
+  never re-downloading the model.
 - Made news retrieval portable beyond this Mac: GitHub Actions runs the fetch
   on a schedule and publishes a JSON snapshot via GitHub Pages (both free) —
   any client, including a mobile app, can now fetch and search it with no
