@@ -10,10 +10,20 @@ weights, since AI model releases go stale faster than almost any other fact
 category (a fine-tuned "current SOTA model" claim would be wrong within
 months, worse than not knowing at all).
 
+Also optionally publishes a compact JSON snapshot (--json-out) for any client
+that isn't this Mac -- a mobile app, someone else's laptop, anyone who
+downloaded the model elsewhere -- to fetch over plain HTTP and search locally.
+See .github/workflows/fetch-news.yml, which runs this on a schedule and
+publishes the JSON via GitHub Pages: free, no server to keep alive, works from
+anywhere with no local Python/SQLite setup required.
+
 Usage:
     python scripts/fetch_news.py
+    python scripts/fetch_news.py --json-out docs/news.json
 """
 
+import argparse
+import json
 import sqlite3
 import time
 import urllib.request
@@ -100,7 +110,31 @@ def _parse_atom(root: ET.Element) -> list[dict]:
     return items
 
 
+def write_json_snapshot(conn: sqlite3.Connection, out_path: Path) -> int:
+    rows = conn.execute(
+        "SELECT source, title, summary, link, fetched_at FROM articles "
+        "ORDER BY fetched_at DESC"
+    ).fetchall()
+    articles = [
+        {"source": s, "title": t, "summary": summ, "link": link, "fetched_at": fa}
+        for s, t, summ, link, fa in rows
+    ]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(
+            {"generated_at": int(time.time()), "count": len(articles), "articles": articles},
+            f,
+            ensure_ascii=False,
+        )
+    return len(articles)
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--json-out", type=Path, default=None,
+                         help="Also write a JSON snapshot to this path (for static hosting)")
+    args = parser.parse_args()
+
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
@@ -135,6 +169,11 @@ def main():
 
     total = conn.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
     print(f"Added {total_new} new articles, expired {deleted} (>{RETENTION_DAYS}d old), {total} total in index")
+
+    if args.json_out:
+        n = write_json_snapshot(conn, args.json_out)
+        print(f"Wrote JSON snapshot ({n} articles) -> {args.json_out}")
+
     conn.close()
 
 

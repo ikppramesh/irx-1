@@ -1,0 +1,48 @@
+name: Fetch news
+
+# Free replacement for a hosted retrieval API: instead of running a server
+# somewhere, GitHub Actions runs the same fetch_news.py used locally, publishes
+# a JSON snapshot via GitHub Pages, and any client -- a mobile app, someone
+# else's laptop, anyone who downloaded the model elsewhere -- fetches that
+# static file over plain HTTP and searches it locally. No server to keep
+# alive, no hosting cost, no uptime responsibility.
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Persist data/news.db across runs so retention/dedup logic (identical
+      # to the local Mac path) works the same way here -- without this, every
+      # run would start from an empty DB and lose the 7-day expiry tracking.
+      - name: Restore news database cache
+        uses: actions/cache@v4
+        with:
+          path: data/news.db
+          key: news-db-${{ github.run_id }}
+          restore-keys: |
+            news-db-
+
+      - name: Fetch news
+        run: python3 scripts/fetch_news.py --json-out docs/news.json
+
+      - name: Publish updated snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/news.json
+          git diff --staged --quiet || git commit -m "Update news snapshot [skip ci]"
+          git push
