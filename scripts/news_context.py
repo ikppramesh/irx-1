@@ -50,7 +50,12 @@ def get_relevant_context(query: str, limit: int = 3) -> str:
     if not rows:
         return ""
 
-    lines = ["Recent news that may be relevant (use only if it actually helps answer; ignore otherwise):"]
+    lines = [
+        "Your training data is outdated for recent events, and you have no reliable "
+        "internal knowledge of them. Answer using ONLY the articles below. If they "
+        "don't contain enough to answer, say so directly instead of guessing from "
+        "memory. Recent articles:"
+    ]
     for source, title, summary in rows:
         snippet = (summary or "")[:280]
         lines.append(f"- [{source}] {title}: {snippet}")

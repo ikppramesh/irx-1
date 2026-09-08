@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Fetch Indian news RSS feeds into a local SQLite index with full-text search.
-This is retrieval data, not training data -- scripts/news_context.py queries
-it at answer-time and hands relevant recent articles to the model as context.
-The model's weights never change; only this index does. Meant to run on a
-schedule (see scripts/com.irx1.newsfetch.plist) so it always has current
-articles without ever needing retraining.
+Fetch Indian news + AI/tech RSS feeds into a local SQLite index with full-text
+search. This is retrieval data, not training data -- scripts/news_context.py
+queries it at answer-time and hands relevant recent articles to the model as
+context. The model's weights never change; only this index does. Meant to run
+on a schedule (see scripts/com.irx1.newsfetch.plist) so it always has current
+articles without ever needing retraining -- deliberately not baked into
+weights, since AI model releases go stale faster than almost any other fact
+category (a fine-tuned "current SOTA model" claim would be wrong within
+months, worse than not knowing at all).
 
 Usage:
     python scripts/fetch_news.py
@@ -23,7 +26,12 @@ FEEDS = [
     ("Indian Express", "https://indianexpress.com/section/india/feed/"),
     ("NDTV", "https://feeds.feedburner.com/ndtvnews-top-stories"),
     ("LiveMint", "https://www.livemint.com/rss/news"),
+    ("TechCrunch AI", "https://techcrunch.com/category/artificial-intelligence/feed/"),
+    ("The Verge AI", "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"),
+    ("MIT Technology Review", "https://www.technologyreview.com/feed/"),
 ]
+
+ATOM_NS = "{http://www.w3.org/2005/Atom}"
 
 DB_PATH = Path("data/news.db")
 RETENTION_DAYS = 7
@@ -60,11 +68,33 @@ def fetch_feed(url: str) -> list[dict]:
         body = resp.read()
 
     root = ET.fromstring(body)
+    if root.tag == f"{ATOM_NS}feed":
+        return _parse_atom(root)
+    return _parse_rss2(root)
+
+
+def _parse_rss2(root: ET.Element) -> list[dict]:
     items = []
     for item in root.iter("item"):
         title = (item.findtext("title") or "").strip()
         link = (item.findtext("link") or "").strip()
         summary = (item.findtext("description") or "").strip()
+        if title and link:
+            items.append({"title": title, "link": link, "summary": summary})
+    return items
+
+
+def _parse_atom(root: ET.Element) -> list[dict]:
+    items = []
+    for entry in root.iter(f"{ATOM_NS}entry"):
+        title = (entry.findtext(f"{ATOM_NS}title") or "").strip()
+        link_el = entry.find(f"{ATOM_NS}link[@rel='alternate']") or entry.find(f"{ATOM_NS}link")
+        link = link_el.get("href", "").strip() if link_el is not None else ""
+        summary = (
+            entry.findtext(f"{ATOM_NS}summary")
+            or entry.findtext(f"{ATOM_NS}content")
+            or ""
+        ).strip()
         if title and link:
             items.append({"title": title, "link": link, "summary": summary})
     return items

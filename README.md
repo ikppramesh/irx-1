@@ -189,8 +189,10 @@ facts). So this doesn't retrain the model at all. Instead:
 
 ```mermaid
 flowchart TD
-    A[Indian RSS feeds<br/>Times of India, The Hindu, Indian Express, NDTV, LiveMint]
-    A -->|every 5 hours, macOS launchd| B[fetch_news.py<br/>parse RSS, dedup by link, expire entries older than 7 days]
+    A1[Indian news RSS<br/>Times of India, The Hindu, Indian Express, NDTV, LiveMint]
+    A2[AI/tech RSS<br/>TechCrunch AI, The Verge AI, MIT Technology Review]
+    A1 -->|every 5 hours, macOS launchd| B[fetch_news.py<br/>parse RSS/Atom, dedup by link, expire entries older than 7 days]
+    A2 -->|every 5 hours, macOS launchd| B
     B --> C[(data/news.db<br/>SQLite + FTS5 full-text index)]
 
     Q[User question] --> E[news_context.py<br/>extract keywords, FTS5 MATCH search]
@@ -200,18 +202,29 @@ flowchart TD
     G --> R[Answer grounded in real, current article text]
 ```
 
-- `scripts/fetch_news.py` — pulls Indian RSS feeds (Times of India, The Hindu,
-  Indian Express, NDTV, LiveMint) into a local SQLite full-text-search index,
-  meant to run on a schedule (`scripts/com.irx1.newsfetch.plist`, a macOS
-  launchd job, every 5 hours) — pure data ingestion, safe to automate
+- `scripts/fetch_news.py` — pulls Indian news feeds (Times of India, The Hindu,
+  Indian Express, NDTV, LiveMint) plus AI/tech feeds (TechCrunch AI, The Verge AI,
+  MIT Technology Review — chosen for the same reason as news generally: AI model
+  releases go stale faster than almost any fact category, so baking "current SOTA
+  model" into weights would be wrong within months) into a local SQLite full-text
+  index, on a schedule (`scripts/com.irx1.newsfetch.plist`, macOS launchd, every
+  5 hours) — pure data ingestion, safe to automate. Handles both RSS 2.0 and Atom
+  (The Verge publishes Atom, not RSS — different XML shape, both parsed).
 - `scripts/news_context.py` — at answer-time, searches that index for articles
-  relevant to the question and hands them to the model as context
+  relevant to the question and hands them to the model as context, with an
+  explicit instruction to prefer retrieved text over (outdated) internal memory
 - `scripts/chat.py` uses this automatically (disable with `--no-news`)
 
-Verified: asked "what is the news about the government today?", it answered
-grounded in an actual retrieved article (Modi's centenary visit to his alma
-mater) rather than hallucinating from memory — the real fix for "wants current
-info" that retraining-on-news can't reliably deliver.
+**Verified working well for narrow, specific questions** — e.g. "what did
+TechCrunch report about Meta's AI model recently?" answered correctly, grounded
+in the actual retrieved article. **Verified NOT reliable for broad, open-ended
+questions** — "what are the latest AI models released?" still fell back to
+hallucinating stale, made-up model names from frozen training-time memory, even
+after strengthening the instruction to prefer retrieved content. This held even
+though relevant articles were actually retrieved — a 2B model juggling the
+identity system prompt + grounding instruction + retrieved text together doesn't
+reliably prioritize all of it, similar to the Bionic tool-overwhelm finding
+earlier. Ask specific questions, not "list everything about X."
 
 Deliberately **not** automated end-to-end into "retrain and push to Hugging
 Face automatically" — that would risk shipping degraded or hallucination-prone
@@ -309,6 +322,12 @@ To reproduce training, you'll need your own `data/raw/conversations.json`
 ## Changelog
 
 **2026-09-08**
+- Extended the news RAG with AI/tech feeds (TechCrunch AI, The Verge AI, MIT
+  Technology Review) so IRx-1 can discuss recent AI-model-landscape news the
+  same way it does other current events — added Atom feed parsing (The Verge
+  publishes Atom, not RSS) and a stronger grounding instruction. Honestly
+  documented: works well for narrow questions, not reliable for broad
+  "list everything" questions even after the fix (see above)
 - Removed base-model references from public model cards (no more Model Tree
   linkage, no license link naming the base) — kept a generic Apache 2.0
   declaration only
