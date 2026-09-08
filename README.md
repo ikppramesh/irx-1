@@ -191,16 +191,32 @@ facts). So this doesn't retrain the model at all. Instead:
 flowchart TD
     A1[Indian news RSS<br/>Times of India, The Hindu, Indian Express, NDTV, LiveMint]
     A2[AI/tech RSS<br/>TechCrunch AI, The Verge AI, MIT Technology Review]
-    A1 -->|every 5 hours, macOS launchd| B[fetch_news.py<br/>parse RSS/Atom, dedup by link, expire entries older than 7 days]
-    A2 -->|every 5 hours, macOS launchd| B
-    B --> C[(data/news.db<br/>SQLite + FTS5 full-text index)]
 
-    Q[User question] --> E[news_context.py<br/>extract keywords, FTS5 MATCH search]
-    C --> E
-    E -->|top-3 relevant articles| F[chat.py<br/>prepend to system prompt]
-    F --> G[IRx-1<br/>weights unchanged]
+    A1 -->|every 5h, macOS launchd| B1[fetch_news.py, local Mac<br/>parse RSS/Atom, dedup, expire >7d]
+    A2 -->|every 5h, macOS launchd| B1
+    B1 --> C1[(data/news.db<br/>SQLite + FTS5, this Mac only)]
+    C1 --> E1[news_context.py<br/>FTS5 MATCH search]
+    Q1[Question, on this Mac] --> E1
+    E1 -->|top-3 articles| F1[chat.py<br/>prepend to system prompt]
+
+    A1 -->|every 5h, GitHub Actions, free| B2[fetch_news.py, CI<br/>same script, --json-out]
+    A2 -->|every 5h, GitHub Actions, free| B2
+    B2 --> C2[docs/news.json<br/>published via GitHub Pages, free]
+    C2 -->|plain HTTP GET, from anywhere| E2[client-side keyword search<br/>mobile app, any other machine]
+    Q2[Question, anywhere else] --> E2
+    E2 -->|top-3 articles| F2[caller prepends to its own system prompt]
+
+    F1 --> G[IRx-1<br/>weights unchanged either way]
+    F2 --> G
     G --> R[Answer grounded in real, current article text]
 ```
+
+Two parallel paths, same source data, same underlying logic — the difference
+is just where the search happens and how the data reaches it. The left path
+(SQLite + FTS5) only works on this Mac. The right path (static JSON) works
+from anywhere with an HTTP client, including a phone — but nothing calls it
+automatically; a client (like a mobile app) has to actually fetch the URL and
+do its own keyword search, using the example code below.
 
 - `scripts/fetch_news.py` — pulls Indian news feeds (Times of India, The Hindu,
   Indian Express, NDTV, LiveMint) plus AI/tech feeds (TechCrunch AI, The Verge AI,
