@@ -29,11 +29,24 @@ mlx_lm.fuse \
 # story (conv1d.weight layout + a Gemma-style RMSNorm weight offset).
 python scripts/fix_gguf_mlx_conversion.py "$MERGED_DIR"
 
+# mlx_lm.fuse's --dequantize also writes an auto-generated README.md into
+# $MERGED_DIR with `base_model: mlx-community/Qwen3.5-2B-4bit` and a Qwen
+# license link in its frontmatter. convert_hf_to_gguf.py reads exactly that
+# file as this model's "model card" and copies those fields straight into
+# the GGUF's general.base_model.* / general.license.link metadata -- which
+# is what Hugging Face and GGUF-reading apps (LM Studio, Ollama, etc.) then
+# surface as "fine-tuned from Qwen3.5-2B". Deleting it here (it's a
+# throwaway intermediate anyway, not the published README) stops that
+# heuristic from firing; --model-name and --metadata below set the fields
+# we actually want instead.
+rm -f "$MERGED_DIR/README.md"
+
 # --no-mtp: this checkpoint doesn't carry Qwen3.5's optional multi-token-
 # prediction head (mlx_lm.convert drops it; it's not needed for normal,
 # non-speculative-decoding inference).
 python "$LLAMA_CPP_DIR/convert_hf_to_gguf.py" "$MERGED_DIR" \
-  --outfile "$GGUF_F16" --outtype f16 --no-mtp
+  --outfile "$GGUF_F16" --outtype f16 --no-mtp \
+  --model-name "IRx-1"
 
 # llama-quantize: brew install llama.cpp
 llama-quantize "$GGUF_F16" "$GGUF_QUANT" Q4_K_M
