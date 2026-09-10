@@ -11,6 +11,9 @@ Usage:
 """
 
 import argparse
+import hashlib
+import json
+import time
 from pathlib import Path
 
 from huggingface_hub import HfApi
@@ -66,6 +69,27 @@ def main():
                 path_in_repo="README.md",
                 commit_message=args.commit_message,
             )
+
+        # Small manifest apps can poll instead of re-downloading the whole
+        # GGUF just to check whether a new build exists. Written after the
+        # GGUF itself so it never points at a version that isn't live yet.
+        print("Publishing version manifest")
+        sha256 = hashlib.sha256()
+        with open(gguf_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                sha256.update(chunk)
+        manifest = {
+            "version": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "filename": GGUF_REPO_FILENAME,
+            "size_bytes": gguf_path.stat().st_size,
+            "sha256": sha256.hexdigest(),
+        }
+        api.upload_file(
+            repo_id=GGUF_REPO,
+            path_or_fileobj=json.dumps(manifest, indent=2).encode(),
+            path_in_repo="version.json",
+            commit_message=args.commit_message,
+        )
 
     print("Publish complete.")
 
