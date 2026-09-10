@@ -31,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="models/irx-1-merged")
     parser.add_argument("--temp", type=float, default=0.7)
-    parser.add_argument("--max-tokens", type=int, default=512)
+    parser.add_argument("--max-tokens", type=int, default=1536)
     parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT)
     parser.add_argument("--no-news", action="store_true",
                          help="Disable news-index retrieval context")
