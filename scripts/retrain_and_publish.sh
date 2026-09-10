@@ -14,6 +14,13 @@
 # unaffected by anything here.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# launchd runs this job with a minimal PATH (/usr/bin:/bin:/usr/sbin:/sbin)
+# that doesn't include Homebrew's bin dir, where llama-quantize lives (brew
+# install llama.cpp). Every one of the first 8 automated cycles died at
+# that exact step with "command not found" and never got to publish --
+# only found because it worked fine when run interactively, where the
+# shell's own PATH already has this.
+export PATH="/opt/homebrew/bin:$PATH"
 source .venv/bin/activate
 
 BASE_MODEL="mlx-community/Qwen3.5-2B-4bit"
