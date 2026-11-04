@@ -1,23 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Weekly IRx retrain: every Thursday at 11:15 (local time, IST).
+     Install: cp scripts/com.irx1.retrain.plist ~/Library/LaunchAgents/ &&
+              launchctl bootout gui/$(id -u)/com.irx1.retrain 2>/dev/null;
+              launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.irx1.retrain.plist
+     A run missed while the Mac was asleep starts when it wakes. Full logs are on the
+     drive (/Volumes/1TB_IR/TrainedModels/IRx/logs); this file only gets launchd output. -->
 <plist version="1.0">
 <dict>
-    <key>Label</key>
-    <string>com.irx1.retrain</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/bash</string>
-        <string>/Users/rameshinampudi/Documents/Projects/IRx-1/scripts/retrain_and_publish.sh</string>
-    </array>
-    <key>WorkingDirectory</key>
-    <string>/Users/rameshinampudi/Documents/Projects/IRx-1</string>
-    <key>StartInterval</key>
-    <integer>18000</integer>
-    <key>RunAtLoad</key>
-    <false/>
-    <key>StandardOutPath</key>
-    <string>/Users/rameshinampudi/Documents/Projects/IRx-1/data/retrain.log</string>
-    <key>StandardErrorPath</key>
-    <string>/Users/rameshinampudi/Documents/Projects/IRx-1/data/retrain.log</string>
+	<key>Label</key>
+	<string>com.irx1.retrain</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/rameshinampudi/Documents/Projects/IRx-1/scripts/retrain_and_publish.sh</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/Users/rameshinampudi/Documents/Projects/IRx-1</string>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Weekday</key>
+		<integer>4</integer>
+		<key>Hour</key>
+		<integer>11</integer>
+		<key>Minute</key>
+		<integer>15</integer>
+	</dict>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>ProcessType</key>
+	<string>Standard</string>
+	<key>StandardOutPath</key>
+	<string>/Users/rameshinampudi/Library/Logs/irx-retrain.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/rameshinampudi/Library/Logs/irx-retrain.log</string>
 </dict>
 </plist>

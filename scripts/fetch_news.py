@@ -44,6 +44,17 @@ FEEDS = [
     ("TechCrunch AI", "https://techcrunch.com/category/artificial-intelligence/feed/"),
     ("The Verge AI", "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"),
     ("MIT Technology Review", "https://www.technologyreview.com/feed/"),
+    # World, business, science and sport, added 2026-10-03.
+    ("BBC World", "https://feeds.bbci.co.uk/news/world/rss.xml"),
+    ("BBC Business", "https://feeds.bbci.co.uk/news/business/rss.xml"),
+    ("BBC Science", "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"),
+    ("BBC Technology", "https://feeds.bbci.co.uk/news/technology/rss.xml"),
+    ("Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml"),
+    ("The Hindu Business", "https://www.thehindu.com/business/feeder/default.rss"),
+    ("The Hindu Sport", "https://www.thehindu.com/sport/feeder/default.rss"),
+    ("The Hindu Sci-Tech", "https://www.thehindu.com/sci-tech/feeder/default.rss"),
+    ("ESPNcricinfo", "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"),
+    ("NASA", "https://www.nasa.gov/news-release/feed/"),
 ]
 
 ATOM_NS = "{http://www.w3.org/2005/Atom}"

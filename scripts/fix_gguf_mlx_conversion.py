@@ -44,34 +44,41 @@ def main():
         sys.exit(1)
 
     merged_dir = Path(sys.argv[1])
-    weights_path = merged_dir / "model.safetensors"
+    # Larger models (e.g. 4B in bf16) are saved as model-0000N-of-0000M shards.
+    shards = sorted(merged_dir.glob("model*.safetensors"))
+    if not shards:
+        raise SystemExit(f"No model*.safetensors in {merged_dir}")
 
-    tensors = mx.load(str(weights_path))
+    conv_total = norm_total = 0
+    for weights_path in shards:
+        tensors = mx.load(str(weights_path))
 
-    conv_fixed = [k for k in tensors if k.endswith("linear_attn.conv1d.weight")]
-    for key in conv_fixed:
-        tensors[key] = mx.transpose(tensors[key], (0, 2, 1))
+        conv_fixed = [k for k in tensors if k.endswith("linear_attn.conv1d.weight")]
+        for key in conv_fixed:
+            tensors[key] = mx.transpose(tensors[key], (0, 2, 1))
 
-    norm_fixed = [
-        k for k in tensors
-        if k.endswith("input_layernorm.weight")
-        or k.endswith("post_attention_layernorm.weight")
-        or k.endswith("self_attn.q_norm.weight")
-        or k.endswith("self_attn.k_norm.weight")
-        or k.endswith(".model.norm.weight")
-        or k == "language_model.model.norm.weight"
-    ]
-    for key in norm_fixed:
-        tensors[key] = tensors[key].astype(mx.float32) - 1.0
-        tensors[key] = tensors[key].astype(mx.bfloat16)
+        norm_fixed = [
+            k for k in tensors
+            if k.endswith("input_layernorm.weight")
+            or k.endswith("post_attention_layernorm.weight")
+            or k.endswith("self_attn.q_norm.weight")
+            or k.endswith("self_attn.k_norm.weight")
+            or k.endswith(".model.norm.weight")
+            or k == "language_model.model.norm.weight"
+        ]
+        for key in norm_fixed:
+            tensors[key] = tensors[key].astype(mx.float32) - 1.0
+            tensors[key] = tensors[key].astype(mx.bfloat16)
 
-    tmp_path = weights_path.with_name("tmp_gguf_fix.safetensors")
-    mx.save_safetensors(str(tmp_path), tensors)
-    os.replace(tmp_path, weights_path)
+        tmp_path = weights_path.with_name("tmp_gguf_fix.safetensors")
+        mx.save_safetensors(str(tmp_path), tensors)
+        os.replace(tmp_path, weights_path)
+        conv_total += len(conv_fixed)
+        norm_total += len(norm_fixed)
 
-    print(f"Fixed conv1d layout on {len(conv_fixed)} tensors")
-    print(f"Fixed norm-weight offset on {len(norm_fixed)} tensors")
-    print(f"-> {weights_path}")
+    print(f"Fixed conv1d layout on {conv_total} tensors")
+    print(f"Fixed norm-weight offset on {norm_total} tensors")
+    print(f"-> {len(shards)} file(s) in {merged_dir}")
 
 
 if __name__ == "__main__":
