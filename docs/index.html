@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IRx model family — offline AI that runs on your device</title>
+<meta name="description" content="IRx-mini, IRx-1, IRx-2 and IRx-2 Pro: small chat models that run fully offline on phones, tablets and Macs. Sizes, measured speed, downloads and quick start.">
+<meta property="og:title" content="IRx model family">
+<meta property="og:description" content="Offline AI chat models for phones, tablets and Macs. Compare, download, run.">
+<meta property="og:image" content="https://ikppramesh.github.io/irx-1/irx-1.png">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#262b36;--fg:#e8eaf0;--mut:#9aa3b2;--acc:#7cc4ff;--ok:#6ee7a8;--btn:#0b6bcb}
+@media(prefers-color-scheme:light){:root{--bg:#f7f8fa;--card:#fff;--line:#e2e5ec;--fg:#14171f;--mut:#566074;--acc:#0b6bcb;--ok:#0a8a4f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:960px;margin:0 auto;padding:0 20px 60px}
+header{text-align:center;padding:48px 0 24px}
+header img{max-width:320px;width:70%;height:auto;border-radius:12px}
+h1{font-size:2rem;margin:.6em 0 .2em}
+h2{margin:2.2em 0 .6em;font-size:1.4rem}
+p.lead{color:var(--mut);max-width:620px;margin:0 auto}
+a{color:var(--acc)}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.btn{display:inline-block;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--card);text-decoration:none;font-weight:600}
+.btn.primary{background:var(--btn);color:#fff;border-color:var(--btn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card.best{border-color:var(--ok)}
+.card h3{margin:0 0 4px}
+.tag{font-size:.75rem;color:var(--ok);font-weight:700}
+.card p{margin:.4em 0;color:var(--mut);font-size:.92rem}
+.card dl{margin:.6em 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:.9rem}
+.card dt{color:var(--mut)}.card dd{margin:0;text-align:right}
+.card .btn{margin:4px 4px 0 0;padding:6px 10px;font-size:.85rem}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--line)}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-size:.85rem}
+.bar{display:inline-block;height:10px;border-radius:5px;background:var(--acc);vertical-align:middle;margin-right:8px}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;font-size:.85rem;position:relative}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tabs button{font:inherit;font-size:.9rem;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--btn);color:#fff;border-color:var(--btn)}
+.panel[hidden]{display:none}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.note{color:var(--mut);font-size:.88rem}
+footer{margin-top:50px;text-align:center;color:var(--mut);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <img src="irx-1.png" alt="IRx logo">
+  <h1>IRx model family</h1>
+  <p class="lead">Small chat models that run <strong>entirely on your device</strong> — no internet, no account, and nothing you type ever leaves it. Fine-tuned with MLX on a single Mac, shipped as MLX and GGUF.</p>
+  <div class="btns">
+    <a class="btn primary" href="#download">Download</a>
+    <a class="btn" href="#quickstart">Quick start</a>
+    <a class="btn" href="#benchmarks">Benchmarks</a>
+    <a class="btn" href="https://github.com/ikppramesh/irx-1">GitHub</a>
+  </div>
+</header>
+
+<h2 id="download">Pick a model &amp; download</h2>
+<p class="note">Not sure? Start with IRx-2. GGUF files work in PocketPal (iPhone, iPad, Android), LM Studio, Ollama and llama.cpp; MLX builds are for Apple Silicon Macs.</p>
+<div class="grid">
+  <div class="card"><h3>IRx-mini</h3><p>Smallest. Simple, quick answers on 4GB-RAM phones.</p>
+    <dl><dt>Download</dt><dd>~1.1 GB</dd><dt>File</dt><dd>Q8_0</dd><dt>Min. RAM</dt><dd>4 GB</dd></dl>
+    <a class="btn primary" href="https://huggingface.co/ikppramesh/irx-mini-GGUF">GGUF</a><a class="btn" href="https://huggingface.co/ikppramesh/irx-mini">MLX</a></div>
+  <div class="card"><h3>IRx-1</h3><p>Fast everyday answers on almost any phone.</p>
+    <dl><dt>Download</dt><dd>~1.2 GB</dd><dt>File</dt><dd>Q4_K_M</dd><dt>Min. RAM</dt><dd>Most phones</dd></dl>
+    <a class="btn primary" href="https://huggingface.co/ikppramesh/irx-1-GGUF">GGUF</a><a class="btn" href="https://huggingface.co/ikppramesh/irx-1">MLX</a></div>
+  <div class="card best"><span class="tag">⭐ BEST OVERALL</span><h3>IRx-2</h3><p>Best balance of answer quality and speed.</p>
+    <dl><dt>Download</dt><dd>~2.7 GB</dd><dt>File</dt><dd>Q4_K_M</dd><dt>Min. RAM</dt><dd>8 GB</dd></dl>
+    <a class="btn primary" href="https://huggingface.co/ikppramesh/irx-2-GGUF">GGUF</a><a class="btn" href="https://huggingface.co/ikppramesh/irx-2">MLX</a></div>
+  <div class="card"><h3>IRx-2 Pro</h3><p>Most detailed, long-form answers and long conversations.</p>
+    <dl><dt>Download</dt><dd>~5.3 GB</dd><dt>File</dt><dd>Q4_K_M</dd><dt>Min. RAM</dt><dd>12 GB</dd></dl>
+    <a class="btn primary" href="https://huggingface.co/ikppramesh/irx-2-pro-GGUF">GGUF</a><a class="btn" href="https://huggingface.co/ikppramesh/irx-2-pro">MLX</a></div>
+</div>
+
+<h2 id="benchmarks">Benchmarks</h2>
+<p class="note">Generation speed measured with llama.cpp on the same Mac CPU (higher is faster), as reported on the model cards. IRx-1 measured 51–54 tokens/s across two runs.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Model</th><th>Speed (tokens/s)</th><th>Download</th><th>RAM while running</th></tr></thead>
+  <tbody>
+    <tr><td>IRx-mini</td><td><span class="bar" style="width:89px"></span>~89</td><td>~1.1 GB</td><td>~1.3 GB</td></tr>
+    <tr><td>IRx-1</td><td><span class="bar" style="width:52px"></span>~52</td><td>~1.2 GB</td><td>—</td></tr>
+    <tr><td>IRx-2</td><td><span class="bar" style="width:26px"></span>~26</td><td>~2.7 GB</td><td>~3.5 GB</td></tr>
+    <tr><td>IRx-2 Pro</td><td><span class="bar" style="width:24px"></span>~24</td><td>~5.3 GB</td><td>~6 GB</td></tr>
+  </tbody>
+</table></div>
+<p class="note">Quality: before each weekly publish, every build must pass an automated behaviour check — repeated 8-turn conversations with repeat penalty off, with no loops, no copied answers, no hidden reasoning and correct identity. With the built-in news digest, answers about digest headlines contained the real facts 47% of the time versus 0% for news learned through training alone (Oct 2026 test). These are small models: they will not match large hosted models on hard reasoning, and facts can be wrong — double-check anything important. Academic benchmark scores are not listed because they have not been measured.</p>
+
+<h2 id="quickstart">Quick start</h2>
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-p="p1">Phone / tablet</button>
+  <button role="tab" aria-selected="false" data-p="p2">llama.cpp</button>
+  <button role="tab" aria-selected="false" data-p="p3">Python (MLX)</button>
+</div>
+<div class="panel" id="p1">
+  <ol>
+    <li>Install <strong>PocketPal</strong> (iPhone, iPad or Android) or LM Studio.</li>
+    <li>Download the GGUF file for your model from the <a href="#download">table above</a>.</li>
+    <li>Load it and chat. Turn <strong>off</strong> tool/function-calling for this model — it was never trained for it.</li>
+  </ol>
+</div>
+<div class="panel" id="p2" hidden>
+<pre><code>huggingface-cli download ikppramesh/irx-2-GGUF irx-2-Q4_K_M.gguf --local-dir .
+llama-cli -m irx-2-Q4_K_M.gguf --jinja -c 8192 -p "How do I convert Celsius to Fahrenheit?"</code></pre>
+</div>
+<div class="panel" id="p3" hidden>
+<pre><code>pip install mlx-lm
+
+from mlx_lm import load, generate
+model, tokenizer = load("ikppramesh/irx-2")
+messages = [{"role": "user", "content": "How do I convert Celsius to Fahrenheit?"}]
+prompt = tokenizer.apply_chat_template(
+    messages, add_generation_prompt=True, tokenize=False, enable_thinking=False)
+print(generate(model, tokenizer, prompt=prompt, max_tokens=200))</code></pre>
+</div>
+
+<h2>Good to know</h2>
+<ul>
+  <li><strong>Fully offline</strong> — no account, nothing leaves your device.</li>
+  <li><strong>Rebuilt weekly</strong> with a built-in news digest; it can't look anything up beyond its stated news date.</li>
+  <li><strong>Limits:</strong> not a frontier model; not a substitute for medical, legal or financial professionals.</li>
+  <li>Apache 2.0 licensed — see the <a href="https://github.com/ikppramesh/irx-1/blob/main/docs/LICENSE_NOTE.md">license note</a>.</li>
+</ul>
+
+<footer>
+  <a href="https://github.com/ikppramesh/irx-1">Source on GitHub</a> ·
+  <a href="https://huggingface.co/ikppramesh">Hugging Face</a> ·
+  <a href="news.json">Live news snapshot (JSON)</a>
+</footer>
+</main>
+<script>
+document.querySelectorAll('.tabs button').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected',x===b)});
+    document.querySelectorAll('.panel').forEach(function(p){p.hidden=p.id!==b.dataset.p});
+  });
+});
+document.querySelectorAll('pre').forEach(function(pre){
+  var c=document.createElement('button');c.className='copy';c.textContent='Copy';
+  c.addEventListener('click',function(){
+    navigator.clipboard.writeText(pre.querySelector('code').innerText).then(function(){
+      c.textContent='Copied';setTimeout(function(){c.textContent='Copy'},1500);
+    });
+  });
+  pre.appendChild(c);
+});
+</script>
+</body>
+</html>

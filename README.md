@@ -27,6 +27,8 @@ required at inference time — while still being genuinely useful for everyday t
 
 **[→ Try it on Hugging Face](https://huggingface.co/ikppramesh/irx-1)**
 
+**[→ Model card site](https://ikppramesh.github.io/irx-1/)** — compare the IRx family, measured speed, download links and quick start (source: `docs/index.html`).
+
 ## Strengths
 
 - **Fast and lightweight** — small enough to run offline on a phone or laptop
