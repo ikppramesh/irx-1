@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog — IRx model family</title>
+<meta name="description" content="Release notes for the IRx on-device chat models, generated from the GitHub releases of ikppramesh/irx-1.">
+<meta property="og:title" content="IRx changelog">
+<meta property="og:description" content="Release notes for the IRx offline chat models.">
+<meta property="og:image" content="https://ikppramesh.github.io/irx-1/irx-1.png">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#262b36;--fg:#e8eaf0;--mut:#9aa3b2;--acc:#7cc4ff;--ok:#6ee7a8;--btn:#0b6bcb}
+@media(prefers-color-scheme:light){:root{--bg:#f7f8fa;--card:#fff;--line:#e2e5ec;--fg:#14171f;--mut:#566074;--acc:#0b6bcb;--ok:#0a8a4f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:0 20px 60px}
+header{text-align:center;padding:48px 0 24px}
+h1{font-size:2rem;margin:.6em 0 .2em}
+p.lead{color:var(--mut);max-width:620px;margin:0 auto}
+a{color:var(--acc)}
+.btn{display:inline-block;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--card);text-decoration:none;font-weight:600}
+.release{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+.release h2{margin:0;font-size:1.25rem}
+.meta{color:var(--mut);font-size:.88rem;margin:.3em 0 .8em;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.badge{font-size:.72rem;font-weight:700;color:var(--ok);border:1px solid var(--ok);border-radius:6px;padding:1px 7px}
+.body h3{font-size:1rem;margin:1em 0 .3em}
+.body p{margin:.5em 0}
+.body ul{margin:.4em 0;padding-left:1.3em}
+.body li{margin:.2em 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.status{color:var(--mut);text-align:center;margin:40px 0}
+footer{margin-top:50px;text-align:center;color:var(--mut);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Changelog</h1>
+  <p class="lead">What changed in each IRx release. Entries come straight from the <a href="https://github.com/ikppramesh/irx-1/releases">GitHub releases</a> of this project.</p>
+</header>
+
+<div id="releases" aria-live="polite">
+  <p class="status">Loading releases…</p>
+</div>
+
+<footer>
+  <a href="index.html">Model family</a> ·
+  <a href="https://github.com/ikppramesh/irx-1/releases">All releases on GitHub</a> ·
+  <a href="https://huggingface.co/ikppramesh">Hugging Face</a>
+</footer>
+</main>
+<script>
+var REPO = 'ikppramesh/irx-1';
+var list = document.getElementById('releases');
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Small, safe subset of markdown: headings, bullet lists, paragraphs,
+// **bold**, `code` and [text](https://...) links. Input is escaped first,
+// so release notes can never inject markup.
+function renderBody(md){
+  var out = [], inList = false;
+  function closeList(){ if(inList){ out.push('</ul>'); inList = false; } }
+  esc(md || '').split(/\r?\n/).forEach(function(line){
+    var t = line.trim(), m;
+    if(!t){ closeList(); return; }
+    if((m = t.match(/^#{1,6}\s+(.*)$/))){ closeList(); out.push('<h3>' + inline(m[1]) + '</h3>'); return; }
+    if((m = t.match(/^[-*]\s+(.*)$/))){
+      if(!inList){ out.push('<ul>'); inList = true; }
+      out.push('<li>' + inline(m[1]) + '</li>');
+      return;
+    }
+    closeList();
+    out.push('<p>' + inline(t) + '</p>');
+  });
+  closeList();
+  return out.join('\n');
+}
+
+function inline(s){
+  return s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
+}
+
+function showStatus(text, linkHref, linkText){
+  list.innerHTML = '';
+  var p = document.createElement('p');
+  p.className = 'status';
+  p.textContent = text;
+  if(linkHref){
+    p.appendChild(document.createTextNode(' '));
+    var a = document.createElement('a');
+    a.href = linkHref;
+    a.textContent = linkText;
+    p.appendChild(a);
+  }
+  list.appendChild(p);
+}
+
+function renderRelease(r){
+  var art = document.createElement('article');
+  art.className = 'release';
+
+  var h = document.createElement('h2');
+  h.textContent = r.name || r.tag_name;
+  art.appendChild(h);
+
+  var meta = document.createElement('div');
+  meta.className = 'meta';
+  var when = new Date(r.published_at || r.created_at);
+  var date = document.createElement('time');
+  date.dateTime = when.toISOString();
+  date.textContent = when.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+  meta.appendChild(date);
+  if(r.tag_name){
+    var tag = document.createElement('span');
+    tag.textContent = r.tag_name;
+    meta.appendChild(tag);
+  }
+  if(r.prerelease){
+    var pre = document.createElement('span');
+    pre.className = 'badge';
+    pre.textContent = 'Pre-release';
+    meta.appendChild(pre);
+  }
+  var link = document.createElement('a');
+  link.href = r.html_url;
+  link.textContent = 'View on GitHub';
+  meta.appendChild(link);
+  art.appendChild(meta);
+
+  var body = document.createElement('div');
+  body.className = 'body';
+  body.innerHTML = renderBody(r.body);
+  art.appendChild(body);
+  return art;
+}
+
+fetch('https://api.github.com/repos/' + REPO + '/releases?per_page=30', {
+  headers: {Accept: 'application/vnd.github+json'}
+}).then(function(res){
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}).then(function(releases){
+  var published = releases.filter(function(r){ return !r.draft; });
+  if(!published.length){
+    showStatus('No releases published yet.');
+    return;
+  }
+  list.innerHTML = '';
+  published.forEach(function(r){ list.appendChild(renderRelease(r)); });
+}).catch(function(){
+  showStatus('Couldn’t load releases right now.', 'https://github.com/ikppramesh/irx-1/releases', 'Read them on GitHub');
+});
+</script>
+</body>
+</html>

@@ -29,6 +29,8 @@ required at inference time — while still being genuinely useful for everyday t
 
 **[→ Model card site](https://ikppramesh.github.io/irx-1/)** — compare the IRx family, measured speed, download links and quick start (source: `docs/index.html`).
 
+**[→ Changelog](https://ikppramesh.github.io/irx-1/changelog.html)** — release notes pulled live from this repo's GitHub releases (source: `docs/changelog.html`).
+
 ## Strengths
 
 - **Fast and lightweight** — small enough to run offline on a phone or laptop
